@@ -7,12 +7,12 @@ import cv2
 import cv_bridge
 
 
-model_name = "../data/v7-LandCover-retrained-twice"
-
 class MapCoverNode(Node):
 
     def __init__(self):
         super().__init__('minimal_subscriber')
+        self.declare_parameter('model_name', "../data/v7-LandCover-retrained-twice")
+        model_name = self.get_parameter('model_name').value
         self.model = predict.load_model(model_name)
         self.bridge = cv_bridge.CvBridge()
         self.subscription = self.create_subscription(
@@ -21,11 +21,15 @@ class MapCoverNode(Node):
             self.listener_callback,
             10)
         self.subscription  # prevent unused variable warning
+        self.map_cover_publisher = self.create_publisher(Image, "map_cover_labels", 10)  
 
     def listener_callback(self, msg):
         self.get_logger().info('got message')
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        output = predict.handle_image(self.model, cv_image)
+        output, output_image = predict.handle_image(self.model, cv_image)   
+        cv2.imwrite("kaka.jpeg", output_image)
+        image2 = cv2.imread("kaka.jpeg")     
+        self.map_cover_publisher.publish(self.bridge.cv2_to_imgmsg(image2, "bgr8"))
 
 
 def main(args=None):

@@ -146,20 +146,22 @@ def visualize_prediction(output_prediction):
                             [0, 0, 255],  # blue - water
                             [255, 255, 255]])  # white - road
     output_image = palette[np.int16(output_prediction)]
-    cv2.imwrite("kaka.jpeg", output_image)
+    return output_image
+    #
 
 def handle_image(model, image):
     with tempfile.TemporaryDirectory() as OUTPUT_DIR:
         image, split_files, split_files_xy = split(image, OUTPUT_DIR)        
         pred = predict(model, split_files)        
         output = assemble_prediction(image, split_files_xy, pred)
-        visualize_prediction(output)
-    return output
+        output_image = visualize_prediction(output)
+    return output, output_image
 
 def main(input_image_filename):
     model = load_model(model_name)
     image = cv2.imread(input_image_filename)
-    pred = handle_image(model, image)
+    pred, output_image = handle_image(model, image)
+    cv2.imwrite("kaka.jpeg", output_image)
     return pred
     
 
