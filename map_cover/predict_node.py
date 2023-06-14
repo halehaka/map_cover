@@ -1,33 +1,37 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String
+from sensor_msgs.msg import Image
 import predict
+import cv2
+import cv_bridge
+
 
 model_name = "../data/v7-LandCover-retrained-twice"
 
-
-class MinimalSubscriber(Node):
+class MapCoverNode(Node):
 
     def __init__(self):
         super().__init__('minimal_subscriber')
         self.model = predict.load_model(model_name)
+        self.bridge = cv_bridge.CvBridge()
         self.subscription = self.create_subscription(
-            String,
-            'topic',
+            Image,
+            'map_cover',
             self.listener_callback,
             10)
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, msg):
-        self.get_logger().info('I heard: "%s"' % msg.data)
-        predict.handle_image(self.model, msg.data)
+        self.get_logger().info('got message')
+        cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        output = predict.handle_image(self.model, cv_image)
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    minimal_subscriber = MinimalSubscriber()
+    minimal_subscriber = MapCoverNode()
 
     rclpy.spin(minimal_subscriber)
 

@@ -31,11 +31,10 @@ def load_model(model_name):
                     metrics=['accuracy', custom_mIoU_metric])
     return model
 
-def split(img_filename : str, OUTPUT_DIR : str):
+def split(img, OUTPUT_DIR : str):
     
     ret = []   
-    xy = []
-    img = cv2.imread(img_filename)     
+    xy = []    
     
     print("Splitting files into ", OUTPUT_DIR)
 
@@ -45,7 +44,7 @@ def split(img_filename : str, OUTPUT_DIR : str):
             img_tile = img[y:y + TARGET_SIZE, x:x + TARGET_SIZE]            
 
             if img_tile.shape[0] == TARGET_SIZE and img_tile.shape[1] == TARGET_SIZE:
-                out_img_path = os.path.join(OUTPUT_DIR, "{}_{}.jpg".format(img_filename, k))
+                out_img_path = os.path.join(OUTPUT_DIR, "input_map_patch_{}.jpg".format(k))
                 cv2.imwrite(out_img_path, img_tile)
                 ret.append(out_img_path)
                 xy.append((x,y))
@@ -149,9 +148,9 @@ def visualize_prediction(output_prediction):
     output_image = palette[np.int16(output_prediction)]
     cv2.imwrite("kaka.jpeg", output_image)
 
-def handle_image(model, input_image_filename):
+def handle_image(model, image):
     with tempfile.TemporaryDirectory() as OUTPUT_DIR:
-        image, split_files, split_files_xy = split(input_image_filename, OUTPUT_DIR)        
+        image, split_files, split_files_xy = split(image, OUTPUT_DIR)        
         pred = predict(model, split_files)        
         output = assemble_prediction(image, split_files_xy, pred)
         visualize_prediction(output)
@@ -159,7 +158,9 @@ def handle_image(model, input_image_filename):
 
 def main(input_image_filename):
     model = load_model(model_name)
-    pred = handle_image(model, input_image_filename)
+    image = cv2.imread(input_image_filename)
+    pred = handle_image(model, image)
+    return pred
     
 
 if __name__ == '__main__':
