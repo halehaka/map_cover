@@ -4,7 +4,6 @@ import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import colors
-from Final_Code.train_LandCover import CustomMeanIoU
 import cv2
 import sys
 import tempfile
@@ -22,6 +21,19 @@ CHANNELS = 3
 BATCH_SIZE = 32
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 NUM_CLASSES = 5
+
+class CustomMeanIoU(tf.keras.metrics.MeanIoU):
+    def __init__(self,
+                 y_true=None,
+                 y_pred=None,
+                 num_classes=None,
+                 name=None,
+                 dtype=None):
+        super(CustomMeanIoU, self).__init__(num_classes=num_classes, name=name, dtype=dtype)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.math.argmax(y_pred, axis=-1)
+        return super().update_state(y_true, y_pred, sample_weight)
 
 
 def load_model(model_name):

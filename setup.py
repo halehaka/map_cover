@@ -2,6 +2,7 @@ from setuptools import setup
 
 package_name = 'map_cover'
 
+
 setup(
     name=package_name,
     version='0.0.0',
@@ -10,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/data', ['resource/v7-LandCover-retrained-twice.h5']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
