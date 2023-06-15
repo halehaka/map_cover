@@ -9,16 +9,7 @@ import sys
 import tempfile
 import math
 
-palette = np.array([[0, 0, 0],  # black - Background
-                        [255, 0, 0],  # red - building
-                        [0, 255, 0],  # green - woodland
-                        [0, 0, 255],  # blue - water
-                        [255, 255, 255], # white - road
-                        [255, 255, 0], # Polygon 1
-                        [255, 0, 255], # Polygon 2
-                        [0, 255, 255], # Polygon 3
-                        [127, 127, 127],# Polygon 4
-                        ])  
+
 
 mirrored_strategy = tf.distribute.MirroredStrategy()
 
@@ -160,46 +151,24 @@ def assemble_prediction(image, split_files_xy, pred):
     output_prediction = np.zeros([image.shape[0] // 2, image.shape[1] // 2])
     for (start_x, start_y), patch_pred in zip(split_files_xy, pred):
         output_prediction[start_y // 2 : start_y // 2 + min(IMG_WIDTH, patch_pred.shape[0]), start_x // 2 : start_x // 2 + min(IMG_HEIGHT, patch_pred.shape[1])] = patch_pred
-    return output_prediction
-
-def visualize_prediction(output_prediction):
-    output_image = palette[np.int16(output_prediction)]
-    return output_image
-    #
+    return output_prediction.astype(np.uint8)
 
 def image_to_pixel_cover(model, image):
     with tempfile.TemporaryDirectory() as OUTPUT_DIR:
         image, split_files, split_files_xy = split(image, OUTPUT_DIR)        
         pred = predict(model, split_files)        
         output = assemble_prediction(image, split_files_xy, pred)
-        output_image = visualize_prediction(output)
-    return output, output_image
+        #output_image = visualize_prediction(output)
+    return output#, output_image
 
-def pixel_labels_to_grid(pixel_labels, minx, miny, maxx, maxy, deltax, deltay):
-    print(pixel_labels.shape)
-    delta_x_pixels = math.ceil(pixel_labels.shape[1] / ((maxx - minx) / deltax))
-    delta_y_pixels = math.ceil(pixel_labels.shape[0] / ((maxy - miny) / deltay))
-    print("delta: ", delta_x_pixels, delta_y_pixels)
-    
-    grid = {}
-    for j,y in enumerate(range(0,pixel_labels.shape[0], delta_y_pixels)):
-        for i,x in enumerate(range(0,pixel_labels.shape[1], delta_x_pixels)):            
-            next_x = min(x+delta_x_pixels, pixel_labels.shape[1])
-            next_y = min(y+delta_y_pixels, pixel_labels.shape[0])
-            patch = pixel_labels[y:next_y, x:next_x]
-            grid[i,j] = (x, y, next_x, next_y, np.histogram(patch, bins=[x-0.5 for x in range(NUM_CLASSES+10)], density=True)[0])
-    return grid
+
 
 
 def main(input_image_filename):
     model = load_model(model_name)
     image = cv2.imread(input_image_filename)
-    pred, output_image = image_to_pixel_cover(model, image)
-    cv2.imwrite("kaka.jpeg", output_image)
-    grid = pixel_labels_to_grid(pred, 10.5, 10.5, 20.5, 20.5, 3, 3)
-    for i,j in grid:
-        print(i, j, grid[i,j])
-    return pred
+    pred = image_to_pixel_cover(model, image)
+    cv2.imwrite("kaka.jpeg", pred)
     
 
 if __name__ == '__main__':
