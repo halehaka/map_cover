@@ -30,7 +30,7 @@ class MapCoverNode(Node):
     def listener_callback(self, msg):
         self.get_logger().info('got message')
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        output, output_image = map_cover.predict.handle_image(self.model, cv_image)   
+        output, output_image = map_cover.predict.image_to_pixel_cover(self.model, cv_image)   
         cv2.imwrite("kaka.jpeg", output_image)
         image2 = cv2.imread("kaka.jpeg")     
         self.map_cover_publisher.publish(self.bridge.cv2_to_imgmsg(image2, "bgr8"))
