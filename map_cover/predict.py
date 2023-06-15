@@ -13,7 +13,12 @@ palette = np.array([[0, 0, 0],  # black - Background
                         [255, 0, 0],  # red - building
                         [0, 255, 0],  # green - woodland
                         [0, 0, 255],  # blue - water
-                        [255, 255, 255]])  # white - road
+                        [255, 255, 255], # white - road
+                        [255, 255, 0], # Polygon 1
+                        [255, 0, 255], # Polygon 2
+                        [0, 255, 255], # Polygon 3
+                        [127, 127, 127],# Polygon 4
+                        ])  
 
 mirrored_strategy = tf.distribute.MirroredStrategy()
 
@@ -182,7 +187,7 @@ def pixel_labels_to_grid(pixel_labels, minx, miny, maxx, maxy, deltax, deltay):
             next_x = min(x+delta_x_pixels, pixel_labels.shape[1])
             next_y = min(y+delta_y_pixels, pixel_labels.shape[0])
             patch = pixel_labels[y:next_y, x:next_x]
-            grid[i,j] = (x, y, next_x, next_y, np.histogram(patch, bins=[x-0.5 for x in range(NUM_CLASSES+1)], density=True)[0])
+            grid[i,j] = (x, y, next_x, next_y, np.histogram(patch, bins=[x-0.5 for x in range(NUM_CLASSES+10)], density=True)[0])
     return grid
 
 
