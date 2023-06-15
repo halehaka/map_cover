@@ -170,10 +170,10 @@ def image_to_pixel_cover(model, image):
         output_image = visualize_prediction(output)
     return output, output_image
 
-def pixel_labels_to_grid(pixel_labels, minx, miny, maxx, maxy, delta):
+def pixel_labels_to_grid(pixel_labels, minx, miny, maxx, maxy, deltax, deltay):
     print(pixel_labels.shape)
-    delta_x_pixels = math.ceil(pixel_labels.shape[1] / ((maxx - minx) / delta))
-    delta_y_pixels = math.ceil(pixel_labels.shape[0] / ((maxy - miny) / delta))
+    delta_x_pixels = math.ceil(pixel_labels.shape[1] / ((maxx - minx) / deltax))
+    delta_y_pixels = math.ceil(pixel_labels.shape[0] / ((maxy - miny) / deltay))
     print("delta: ", delta_x_pixels, delta_y_pixels)
     
     grid = {}
@@ -182,7 +182,7 @@ def pixel_labels_to_grid(pixel_labels, minx, miny, maxx, maxy, delta):
             next_x = min(x+delta_x_pixels, pixel_labels.shape[1])
             next_y = min(y+delta_y_pixels, pixel_labels.shape[0])
             patch = pixel_labels[y:next_y, x:next_x]
-            grid[i,j] = np.histogram(patch, bins=[x-0.5 for x in range(NUM_CLASSES+1)], density=True)[0]
+            grid[i,j] = (x, y, next_x, next_y, np.histogram(patch, bins=[x-0.5 for x in range(NUM_CLASSES+1)], density=True)[0])
     return grid
 
 
@@ -191,7 +191,7 @@ def main(input_image_filename):
     image = cv2.imread(input_image_filename)
     pred, output_image = image_to_pixel_cover(model, image)
     cv2.imwrite("kaka.jpeg", output_image)
-    grid = pixel_labels_to_grid(pred, 10.5, 10.5, 20.5, 20.5, 3)
+    grid = pixel_labels_to_grid(pred, 10.5, 10.5, 20.5, 20.5, 3, 3)
     for i,j in grid:
         print(i, j, grid[i,j])
     return pred
