@@ -8,7 +8,7 @@ import cv2
 import sys
 import tempfile
 import math
-
+from map import Map
 
 
 mirrored_strategy = tf.distribute.MirroredStrategy()
@@ -158,20 +158,19 @@ def image_to_pixel_cover(model, image):
         image, split_files, split_files_xy = split(image, OUTPUT_DIR)        
         pred = predict(model, split_files)        
         output = assemble_prediction(image, split_files_xy, pred)
-        #output_image = visualize_prediction(output)
-    return output#, output_image
+    return output
 
 
 
 
 def main(input_image_filename):
     model = load_model(model_name)
-    image = cv2.imread(input_image_filename)
-    pred = image_to_pixel_cover(model, image)
-    cv2.imwrite("kaka.jpeg", pred)
+    map = Map(0,100,0,100,input_image_filename)    
+    pred = image_to_pixel_cover(model, map.image)
+    map_pred = Map(0, 100, 0, 100, pred)
+    cv2.imwrite("kaka.jpeg", map_pred.colormap())
     
 
 if __name__ == '__main__':
-    input_image_filename = "kaka_input.tif"
-    #sys.argv[1]
+    input_image_filename = sys.argv[1]
     main(input_image_filename)

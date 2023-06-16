@@ -62,6 +62,14 @@ class Map:
     def image(self):
         return self._image
     
+    @property
+    def image_max_x(self):
+        return self.image.shape[1] - 1
+    
+    @property
+    def image_max_y(self):
+        return self.image.shape[0] - 1
+    
     def flip_coords(self,point):
         x,y = point
         if self.flip_x:
@@ -82,9 +90,8 @@ class Map:
 
     def relative_position_to_pixel(self, rpoint):
         rx, ry = rpoint
-        x = int(round(self.image.shape[0] * rx))
-        y = int(round(self.image.shape[1] * ry))
-        #return numpy.array([x,y],dtype=numpy.int32)    
+        x = int(round(self.image_max_x * rx))
+        y = int(round(self.image_max_y * ry))        
         return (x,y)
     
     def coords_to_pixel(self, point):
@@ -116,17 +123,33 @@ class Map:
         return output_image
     
     def to_grid(self, delta_x, delta_y):
-        print(self.image.shape)
-        delta_x_pixels = math.ceil(self.image.shape[1] / (self.size_x / delta_x))
-        delta_y_pixels = math.ceil(self.image.shape[0] / (self.size_y / delta_y))
-        
-        grid = {}
-        for j,y in enumerate(range(0,self.image.shape[0], delta_y_pixels)):
-            for i,x in enumerate(range(0,self.image.shape[1], delta_x_pixels)):            
-                next_x = min(x+delta_x_pixels, self.image.shape[1])
-                next_y = min(y+delta_y_pixels, self.image.shape[0])
-                patch = self.image[y:next_y, x:next_x]
-                grid[i,j] = (self.pixel_to_coords( (x,y) ), self.pixel_to_coords( (next_x, next_y) ), numpy.histogram(patch, bins=[x-0.5 for x in range(self.image.max())], density=True)[0])
+        imax = self.image.max()
+        bins = [x-0.5 for x in range(imax+2)]
+        grid_x = numpy.arange(self.left_x, self.right_x, step=delta_x)
+        grid_y = numpy.arange(self.bottom_y, self.top_y, step=delta_y)    
+        grid = {}    
+        for i, cx in enumerate(grid_x):
+            for j, cy in enumerate(grid_y):
+                pixel_point = self.coords_to_pixel( (cx, cy) )
+                next_cx = min(cx + delta_x, self.right_x)
+                next_cy = min(cy + delta_y, self.top_y)
+                next_pixel_point = self.coords_to_pixel( (next_cx, next_cy) )
+                
+
+                patch_min_x = min(pixel_point[0], next_pixel_point[0])
+                patch_max_x = max(pixel_point[0], next_pixel_point[0])
+                patch_min_y = min(pixel_point[1], next_pixel_point[1])
+                patch_max_y = max(pixel_point[1], next_pixel_point[1])
+
+                patch = self.image[patch_min_y:patch_max_y, patch_min_x:patch_max_x]   
+                grid[i,j] = ((cx, cy), (next_cx, next_cy), numpy.histogram(patch, bins=bins, density=True)[0])
+
+        # for j,y in enumerate(range(0,self.image.shape[0], delta_y_pixels)):
+        #     for i,x in enumerate(range(0,self.image.shape[1], delta_x_pixels)):            
+        #         next_x = min(x+delta_x_pixels, self.image.shape[1])
+        #         next_y = min(y+delta_y_pixels, self.image.shape[0])
+        #         patch = self.image[y:next_y, x:next_x]
+        #         grid[i,j] = (self.pixel_to_coords( (x,y) ), self.pixel_to_coords( (next_x, next_y) ), numpy.histogram(patch, bins=[x-0.5 for x in range(self.image.max())], density=True)[0])
         return grid
     
         
