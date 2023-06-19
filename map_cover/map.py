@@ -150,6 +150,7 @@ class Map:
                 
                 # Compute weighted probability from histogram
                 cell_distribution = DiscreteProbabilityDistribution(cover_distributions, histogram)
+                grid[i,j] = GridCellData(shape, cell_distribution)
 
         return grid
     
