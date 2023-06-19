@@ -1,8 +1,10 @@
 import numpy
 import cv2
 import math
+from grid import GridCellData, DiscreteProbabilityDistribution
+import shapely
 
-palette = numpy.array([[0, 0, 0],  # black - Background
+default_palette = numpy.array([[0, 0, 0],  # black - Background
                         [255, 0, 0],  # red - building
                         [0, 255, 0],  # green - woodland
                         [0, 0, 255],  # blue - water
@@ -113,21 +115,22 @@ class Map:
         return self.relative_position_to_coords(self.pixel_to_relative_position(pixel_point))
     
 
+    # A polygon is a list of coordinates of its vertices, e.g., [(1,2), (2,3), (4,5)]
     def color_polygon(self, polygon, polygon_id):
         polyshape = numpy.array(list(map(lambda x: numpy.array(self.coords_to_pixel(x)), polygon)))
         polyshape = polyshape.reshape((-1, 1, 2))
         cv2.fillPoly(self.image, [polyshape], polygon_id)
 
-    def colormap(self):
+    def colormap(self, palette = default_palette):
         output_image = palette[numpy.int16(self.image)]
         return output_image
     
-    def to_grid(self, delta_x, delta_y):
+    def to_grid(self, delta_x, delta_y, cover_distributions):
         imax = self.image.max()
         bins = [x-0.5 for x in range(imax+2)]
         grid_x = numpy.arange(self.left_x, self.right_x, step=delta_x)
         grid_y = numpy.arange(self.bottom_y, self.top_y, step=delta_y)    
-        grid = {}    
+        grid = {}
         for i, cx in enumerate(grid_x):
             for j, cy in enumerate(grid_y):
                 pixel_point = self.coords_to_pixel( (cx, cy) )
@@ -141,15 +144,13 @@ class Map:
                 patch_min_y = min(pixel_point[1], next_pixel_point[1])
                 patch_max_y = max(pixel_point[1], next_pixel_point[1])
 
-                patch = self.image[patch_min_y:patch_max_y, patch_min_x:patch_max_x]   
-                grid[i,j] = ((cx, cy), (next_cx, next_cy), numpy.histogram(patch, bins=bins, density=True)[0])
+                patch = self.image[patch_min_y:patch_max_y, patch_min_x:patch_max_x]
+                shape = shapely.Polygon([(cx, cy), (cx, next_cy), (next_cx, next_cy), (next_cx, cy)])                
+                histogram = numpy.histogram(patch, bins=bins, density=True)[0]
+                
+                # Compute weighted probability from histogram
+                cell_distribution = DiscreteProbabilityDistribution(cover_distributions, histogram)
 
-        # for j,y in enumerate(range(0,self.image.shape[0], delta_y_pixels)):
-        #     for i,x in enumerate(range(0,self.image.shape[1], delta_x_pixels)):            
-        #         next_x = min(x+delta_x_pixels, self.image.shape[1])
-        #         next_y = min(y+delta_y_pixels, self.image.shape[0])
-        #         patch = self.image[y:next_y, x:next_x]
-        #         grid[i,j] = (self.pixel_to_coords( (x,y) ), self.pixel_to_coords( (next_x, next_y) ), numpy.histogram(patch, bins=[x-0.5 for x in range(self.image.max())], density=True)[0])
         return grid
     
         

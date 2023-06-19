@@ -9,12 +9,15 @@ import sys
 import tempfile
 import math
 from map import Map
-
+import yaml
+from yaml.loader import SafeLoader
+from grid import DiscreteProbabilityDistribution
 
 mirrored_strategy = tf.distribute.MirroredStrategy()
 
 
 model_name = "../resource/v7-LandCover-retrained-twice"
+cover_distributions_filename = "../resource/cover_distribution.yaml"
 
 TARGET_SIZE = 512
 IMG_WIDTH = 256
@@ -44,6 +47,14 @@ def load_model(model_name):
     model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                     metrics=['accuracy', custom_mIoU_metric])
     return model
+
+def load_cover_distributions(cover_distributions_filename):
+    ret = {}
+    with open(cover_distributions_filename) as f:
+        data = yaml.load(f, Loader=SafeLoader)        
+        for cover_type in data['coverDistributions']:        
+            ret[cover_type] = DiscreteProbabilityDistribution(data['coverDistributions'][cover_type])
+    return ret
 
 def split(img, OUTPUT_DIR : str):
     
@@ -164,6 +175,7 @@ def image_to_pixel_cover(model, image):
 
 
 def main(input_image_filename):
+    dd = load_cover_distributions(cover_distributions_filename)
     model = load_model(model_name)
     map = Map(0,100,0,100,input_image_filename)    
     pred = image_to_pixel_cover(model, map.image)
