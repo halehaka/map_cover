@@ -8,10 +8,11 @@ import cv2
 import sys
 import tempfile
 import math
-from map import Map
 import yaml
 from yaml.loader import SafeLoader
-from grid import DiscreteProbabilityDistribution
+
+from map_cover.map import Map
+from map_cover.grid import DiscreteProbabilityDistribution
 
 mirrored_strategy = tf.distribute.MirroredStrategy()
 

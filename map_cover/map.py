@@ -1,7 +1,7 @@
 import numpy
 import cv2
 import math
-from grid import GridCellData, DiscreteProbabilityDistribution
+from map_cover.grid import GridCellData, DiscreteProbabilityDistribution
 import shapely
 
 default_palette = numpy.array([[0, 0, 0],  # black - Background

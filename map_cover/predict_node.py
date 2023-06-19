@@ -15,9 +15,15 @@ class MapCoverNode(Node):
 
     def __init__(self):
         super().__init__('minimal_subscriber')
+        
         self.declare_parameter('model_name', os.path.join(get_package_share_directory('map_cover'), 'resource', 'v7-LandCover-retrained-twice'))
         model_name = self.get_parameter('model_name').value
         self.model = map_cover.predict.load_model(model_name)
+
+        self.declare_parameter('cover_distributions_filename', os.path.join(get_package_share_directory('map_cover'), 'resource', 'cover_distribution.yaml'))
+        cover_distributions_filename = self.get_parameter('cover_distributions_filename').value
+        self.cover_distributions = map_cover.predict.load_cover_distributions(cover_distributions_filename)
+
         self.bridge = cv_bridge.CvBridge()
         self.subscription = self.create_subscription(
             Image,
@@ -30,8 +36,8 @@ class MapCoverNode(Node):
     def listener_callback(self, msg):
         self.get_logger().info('got message')
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        output, output_image = map_cover.predict.image_to_pixel_cover(self.model, cv_image)   
-        cv2.imwrite("kaka.jpeg", output_image)
+        output = map_cover.predict.image_to_pixel_cover(self.model, cv_image)   
+        cv2.imwrite("kaka.jpeg", output)
         image2 = cv2.imread("kaka.jpeg")     
         self.map_cover_publisher.publish(self.bridge.cv2_to_imgmsg(image2, "bgr8"))
 
