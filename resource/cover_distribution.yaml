@@ -1,0 +1,11 @@
+# YAML file defining the target distribution according to each cover type
+# Each distribution is a dict from target value (0, 1, 5, 10) to target discover probability
+---
+coverDistributions: {
+  0: {0: 1.0},                         #Background - 0
+  1: {0: 0.9, 1: 0.1},                 #building - 1
+  2: {0: 0.8, 1: 0.1, 5: 0.1},         #woodland - 2
+  3: {0: 1.0},                         #water - 3
+  4: {0: 0.7, 1: 0.1, 5: 0.1, 10: 0.1} #road - 4
+}
+...
