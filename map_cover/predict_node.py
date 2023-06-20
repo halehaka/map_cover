@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 import map_cover.predict, map_cover.map, map_cover.grid
 import cv2
+import cv_bridge
 from ament_index_python.packages import get_package_share_directory
 import os
 from swarm_interfaces.srv import MapToGrid
@@ -15,7 +16,8 @@ class MapToGridServiceNode(Node):
 
     def __init__(self):
         super().__init__('MapToGrid')
-        
+        self.cv_bridge = cv_bridge.CvBridge()
+
         self.declare_parameter('model_name', os.path.join(get_package_share_directory('map_cover'), 'resource', 'v7-LandCover-retrained-twice'))
         model_name = self.get_parameter('model_name').value
         self.model = map_cover.predict.load_model(model_name)
@@ -27,12 +29,13 @@ class MapToGridServiceNode(Node):
         self.srv = self.create_service(MapToGrid, 'map_to_grid', self.map_to_grid_callback)        
 
     def map_to_grid_callback(self, request, response):
-        self.get_logger().info('got request: ' +  request.input_map.map_filename)
+        self.get_logger().info('got request: ')
 
         # Load Map from request        
+        map_image = self.cv_bridge.imgmsg_to_cv2(request.input_map.map)
         map = map_cover.map.Map(request.input_map.bottom_left.longitude, request.input_map.top_right.longitude,
                                 request.input_map.bottom_left.latitude, request.input_map.top_right.latitude,
-                                request.input_map.map_filename)            
+                                map_image)            
         self.get_logger().info('map loaded, predicting cover labels')
 
         pred = map_cover.predict.image_to_pixel_cover(self.model, map.image)
