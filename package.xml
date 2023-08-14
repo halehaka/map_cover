@@ -7,6 +7,7 @@
   <maintainer email="karpase@gmail.com">karpase</maintainer>
   <license>TODO: License declaration</license>
 
+  <depend>rclpy</depend>
   <depend>python-tensorflow-pip</depend>
   <depend>python3-opencv</depend>  
   <depend>python3-shapely</depend>
