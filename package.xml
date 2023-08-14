@@ -7,10 +7,10 @@
   <maintainer email="karpase@gmail.com">karpase</maintainer>
   <license>TODO: License declaration</license>
 
-  <depend>tensorflow</depend>
-  <depend>cv2</depend>
-  <depend>cv_bridge</depend>
-  <depend>shapely</depend>
+  <depend>python-tensorflow-pip</depend>
+  <depend>python3-opencv</depend>  
+  <depend>python3-shapely</depend>
+  <depend>cv_bridge</depend>  
   <test_depend>matplotlib</test_depend>  
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
