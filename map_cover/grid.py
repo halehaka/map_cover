@@ -1,6 +1,7 @@
 from typing import List
 import numbers
 import shapely
+import shapely.geometry
 
 """class that represents the data associated with a grid cell
 """
@@ -46,7 +47,7 @@ class DiscreteProbabilityDistribution:
 
 
 class GridCellData:
-    def __init__(self, area : shapely.Geometry, target_data : DiscreteProbabilityDistribution, blocked : bool = None):
+    def __init__(self, area, target_data : DiscreteProbabilityDistribution, blocked : bool = None):
         self._area = area
         self._target_data = target_data
         self._blocked = False        
