@@ -13,5 +13,5 @@ jobs:
         with:
           package-name: map_cover
           target-ros2-distro: humble
-          vcs-repo-file-url: https://github.com/halehaka/map_cover.git
+          vcs-repo-file-url: https://raw.githubusercontent.com/halehaka/swarm_mission_planning_srv/main/gcs.repos
           
